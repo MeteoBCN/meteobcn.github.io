@@ -30,6 +30,11 @@ input:focus,select:focus,textarea:focus{border-color:var(--gold)}
 label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600;display:block;margin-bottom:6px}
 .field{margin-bottom:16px}
 
+/* BACK BAR */
+.back-bar{display:flex;align-items:center;gap:8px;padding:12px 28px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--ivory);border-bottom:1px solid var(--border);text-decoration:none;transition:color .2s}
+.back-bar:hover{color:var(--gold2)}
+.back-bar .arrow{font-size:15px;line-height:1}
+
 /* NAV */
 .topbar{position:sticky;top:0;z-index:50;background:var(--cream);border-bottom:1px solid var(--border);padding:18px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
 .logo{font-size:19px;letter-spacing:.14em;color:var(--dark)}
@@ -53,6 +58,15 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 .step-dot.active{color:var(--dark)}
 .step-dot.active .n{background:var(--gold);border-color:var(--gold);color:var(--cream)}
 .step-dot.done .n{background:var(--charcoal);border-color:var(--charcoal);color:var(--cream)}
+
+/* CATEGORY FILTER */
+.cat-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;justify-content:center}
+.cat-chip{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 16px;border-radius:18px;border:1px solid var(--border);color:var(--muted);font-weight:600;background:var(--ivory);transition:all .2s}
+.cat-chip:hover{border-color:var(--gold)}
+.cat-chip.sel{background:var(--gold);border-color:var(--gold);color:var(--cream)}
+.cat-group{margin-bottom:32px}
+.cat-group h3{font-size:15px;letter-spacing:.06em;color:var(--gold2);margin-bottom:12px;text-transform:uppercase;font-weight:600;font-family:'Open Sans',sans-serif}
+.svc-card .cat-tag{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold2);font-weight:700;margin-bottom:4px}
 
 /* SERVICE CARDS */
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
@@ -131,10 +145,10 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 .hist-item:last-child{border-bottom:none}
 
 /* SERVICES ADMIN */
-.svc-row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--ivory);margin-bottom:8px}
-.svc-row input{padding:8px 10px}
+.svc-row{display:grid;grid-template-columns:1.8fr 1.6fr 1fr 1fr auto;gap:12px;align-items:center;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--ivory);margin-bottom:8px}
+.svc-row input,.svc-row select{padding:8px 10px}
 .add-svc-card{border:1px dashed var(--border);border-radius:12px;padding:20px;margin-top:20px}
-.grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1.6fr 1.4fr 1fr 1fr;gap:12px}
 
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .settings-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end}
@@ -152,13 +166,15 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
 @media(max-width:640px){
   .two-col{grid-template-columns:1fr}
   .grid3{grid-template-columns:1fr}
-  .svc-row{grid-template-columns:1fr 1fr;grid-template-areas:"n n" "p d" "a a"}
+  .svc-row{grid-template-columns:1fr 1fr}
   .topbar{padding:14px 16px}
   main{padding:24px 14px 90px}
 }
 </style>
 </head>
 <body>
+
+<a href="index.html" class="back-bar"><span class="arrow">←</span> Volver a página principal</a>
 
 <div class="topbar">
   <div class="logo">Ma Ch<em>è</em>re · Agenda</div>
@@ -184,7 +200,8 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
     </div>
 
     <div id="book-step-1">
-      <div id="svc-cards" class="card-grid"></div>
+      <div id="cat-filter" class="cat-filter"></div>
+      <div id="svc-cards"></div>
     </div>
 
     <div id="book-step-2" class="hidden">
@@ -292,6 +309,9 @@ main{max-width:1000px;margin:0 auto;padding:40px 24px 100px}
         <div class="add-svc-card">
           <div class="grid3">
             <div class="field"><label>Nombre del servicio</label><input id="new-svc-nombre" placeholder="Ej. Limpieza facial profunda"></div>
+            <div class="field"><label>Categoría</label>
+              <select id="new-svc-categoria"></select>
+            </div>
             <div class="field"><label>Precio (€)</label><input id="new-svc-precio" type="number" min="0" step="0.5" placeholder="45"></div>
             <div class="field"><label>Duración (min)</label><input id="new-svc-duracion" type="number" min="5" step="5" placeholder="60"></div>
           </div>
@@ -343,6 +363,8 @@ let bookingState = { serviceId:null, date:null, time:null };
 let agendaDate = new Date();
 
 const DOW = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const CATEGORIES = ['Peluquería','Barbería','Tratamientos faciales','Tratamientos corporales','Masajes','Manicura','Pedicura','Pestañas','Micropigmentación','Depilación láser','Depilación cera','Depilación hilo'];
+let categoryFilter = 'todas';
 function fmtDate(d){ return d.toISOString().slice(0,10); }
 function fmtDateLabel(d){ return d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}); }
 
@@ -350,6 +372,7 @@ function fmtDateLabel(d){ return d.toLocaleDateString('es-ES',{weekday:'long',da
 function init(){
   svcCol.onSnapshot(snap=>{
     services = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderCatFilter();
     renderServiceCards();
     renderSvcAdminList();
     renderSlots();
@@ -376,6 +399,7 @@ function init(){
   }, err=>showToast('Error al leer horario'));
 }
 init();
+populateCategorySelect();
 
 /* ============ NAV TOP ============ */
 document.querySelectorAll('.tab-btn').forEach(b=>{
@@ -395,7 +419,7 @@ document.querySelectorAll('.panel-nav button').forEach(b=>{
     document.querySelectorAll('.p-view').forEach(v=>v.classList.add('hidden'));
     document.getElementById('p-'+b.dataset.p).classList.remove('hidden');
     if(b.dataset.p==='clientes') renderClientList();
-    if(b.dataset.p==='servicios') renderSvcAdminList();
+    if(b.dataset.p==='servicios'){ renderSvcAdminList(); populateCategorySelect(); }
     if(b.dataset.p==='agenda') renderAgenda();
   });
 });
@@ -424,18 +448,57 @@ function goStep(n){
 }
 
 /* ============ SERVICE CARDS (public) ============ */
+function renderCatFilter(){
+  const el = document.getElementById('cat-filter');
+  if(!el) return;
+  const present = CATEGORIES.filter(c=>services.some(s=>(s.category||'Otros')===c));
+  if(services.some(s=>!s.category)) present.push('Otros');
+  if(present.length===0){ el.innerHTML=''; return; }
+  const chips = ['todas', ...present];
+  el.innerHTML = chips.map(c=>`
+    <button class="cat-chip ${categoryFilter===c?'sel':''}" onclick="setCategoryFilter('${c.replace(/'/g,"\\'")}')">${c==='todas'?'Todas':c}</button>
+  `).join('');
+}
+function setCategoryFilter(c){
+  categoryFilter = c;
+  renderCatFilter();
+  renderServiceCards();
+}
 function renderServiceCards(){
   const el = document.getElementById('svc-cards');
   if(services.length===0){
     el.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="big">Aún no hay servicios cargados</div>Añádelos desde el Panel → Servicios</div>`;
     return;
   }
-  el.innerHTML = services.map(s=>`
+  const cardHtml = s => `
     <button class="svc-card ${bookingState.serviceId===s.id?'sel':''}" onclick="selectService('${s.id}')">
+      <div class="cat-tag">${escapeHtml(s.category||'Otros')}</div>
       <h4>${escapeHtml(s.name)}</h4>
       <div class="dur">${s.duration} min</div>
       <div class="price">${euros(s.price)}</div>
     </button>
+  `;
+
+  if(categoryFilter !== 'todas'){
+    const filtered = services.filter(s=>(s.category||'Otros')===categoryFilter);
+    el.innerHTML = filtered.length
+      ? `<div class="card-grid">${filtered.map(cardHtml).join('')}</div>`
+      : `<div class="empty" style="grid-column:1/-1">No hay servicios en esta categoría</div>`;
+    return;
+  }
+
+  const order = [...CATEGORIES, 'Otros'];
+  const grouped = {};
+  services.forEach(s=>{
+    const cat = s.category || 'Otros';
+    (grouped[cat] = grouped[cat] || []).push(s);
+  });
+  const cats = order.filter(c=>grouped[c] && grouped[c].length);
+  el.innerHTML = cats.map(cat => `
+    <div class="cat-group">
+      <h3>${cat}</h3>
+      <div class="card-grid">${grouped[cat].map(cardHtml).join('')}</div>
+    </div>
   `).join('');
 }
 function selectService(id){
@@ -565,10 +628,12 @@ async function confirmarReserva(){
 
 function resetBooking(){
   bookingState = { serviceId:null, date:null, time:null };
+  categoryFilter = 'todas';
   document.getElementById('f-nombre').value='';
   document.getElementById('f-telefono').value='';
   document.getElementById('f-email').value='';
   document.getElementById('f-notas').value='';
+  renderCatFilter();
   renderServiceCards();
   renderDateStrip();
   goStep(1);
@@ -698,6 +763,9 @@ function renderSvcAdminList(){
   el.innerHTML = services.map(s=>`
     <div class="svc-row">
       <input value="${escapeHtml(s.name)}" onchange="updateSvcField('${s.id}','name',this.value)">
+      <select onchange="updateSvcField('${s.id}','category',this.value)">
+        ${CATEGORIES.map(c=>`<option value="${escapeHtml(c)}" ${s.category===c?'selected':''}>${c}</option>`).join('')}
+      </select>
       <input type="number" value="${s.price}" step="0.5" onchange="updateSvcField('${s.id}','price',Number(this.value))">
       <input type="number" value="${s.duration}" step="5" onchange="updateSvcField('${s.id}','duration',Number(this.value))">
       <button class="icon-btn btn-danger" title="Eliminar" onclick="deleteSvc('${s.id}')">✕</button>
@@ -716,13 +784,19 @@ async function deleteSvc(id){
     showToast('Servicio eliminado');
   }catch(e){ showToast('No se pudo eliminar'); }
 }
+function populateCategorySelect(){
+  const sel = document.getElementById('new-svc-categoria');
+  if(!sel || sel.options.length) return;
+  sel.innerHTML = CATEGORIES.map(c=>`<option value="${escapeHtml(c)}">${c}</option>`).join('');
+}
 async function addServicio(){
   const name = document.getElementById('new-svc-nombre').value.trim();
+  const category = document.getElementById('new-svc-categoria').value;
   const price = Number(document.getElementById('new-svc-precio').value);
   const duration = Number(document.getElementById('new-svc-duracion').value);
   if(!name || !price || !duration){ showToast('Completa nombre, precio y duración'); return; }
   try{
-    await svcCol.add({ name, price, duration });
+    await svcCol.add({ name, category, price, duration });
     document.getElementById('new-svc-nombre').value='';
     document.getElementById('new-svc-precio').value='';
     document.getElementById('new-svc-duracion').value='';
